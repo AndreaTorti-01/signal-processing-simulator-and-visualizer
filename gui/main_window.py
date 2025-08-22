@@ -30,12 +30,15 @@ class MainWindow(QtWidgets.QWidget):
         self.btn_select = mk_btn('Select/Move', 'select')
         self.btn_add_zero = mk_btn('Add Zero', 'add_zero')
         self.btn_add_pole = mk_btn('Add Pole', 'add_pole')
+        self.btn_delete = mk_btn('Delete', 'delete')
         self.btn_select.setChecked(True)
-        for b in (self.btn_select, self.btn_add_zero, self.btn_add_pole):
+        for b in (self.btn_select, self.btn_add_zero, self.btn_add_pole, self.btn_delete):
             ctrl.addWidget(b)
         ctrl.addStretch(1)
-        hint = QtWidgets.QLabel('Shift: snap add | Ctrl: snap move | Delete: remove')
-        f = hint.font(); f.setPointSize(9); hint.setFont(f)
+        hint = QtWidgets.QLabel('Shift: snap add | Ctrl: snap move | Keyboard Delete: remove | Delete mode: click to remove')
+        f = hint.font()
+        f.setPointSize(9)
+        hint.setFont(f)
         left_v.addLayout(ctrl)
         left_v.addWidget(hint)
 
@@ -67,6 +70,7 @@ class MainWindow(QtWidgets.QWidget):
             'select': self.btn_select,
             'add_zero': self.btn_add_zero,
             'add_pole': self.btn_add_pole,
+            'delete': self.btn_delete,
         }.items():
             b.blockSignals(True)
             b.setChecked(m == mode)

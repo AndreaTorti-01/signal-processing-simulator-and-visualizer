@@ -10,7 +10,7 @@ class PoleZeroEditor(pg.GraphicsLayoutWidget):
 
     def __init__(self, mode_provider=None):
         super().__init__()
-        self.mode_provider = mode_provider  # callable returning 'select'|'add_zero'|'add_pole'
+        self.mode_provider = mode_provider  # callable returning 'select'|'add_zero'|'add_pole'|'delete'
 
         # Plot setup
         self.plot = self.addPlot()
@@ -129,20 +129,26 @@ class PoleZeroEditor(pg.GraphicsLayoutWidget):
                 self.zeros[cj] = new_c.conjugate()
 
     # ---------- Events ----------
+    def _delete_item(self, t: str, idx: int):
+        if t == 'zero' and 0 <= idx < len(self.zeros):
+            cj = self.conjugate_index(idx)
+            if cj is not None:
+                for k in sorted([idx, cj], reverse=True):
+                    if 0 <= k < len(self.zeros):
+                        self.zeros.pop(k)
+            else:
+                self.zeros.pop(idx)
+            return True
+        elif t == 'pole' and 0 <= idx < len(self.poles):
+            self.poles.pop(idx)
+            return True
+        return False
+
     def keyPressEvent(self, ev: QtGui.QKeyEvent):
         if ev.key() in (QtCore.Qt.Key.Key_Backspace, QtCore.Qt.Key.Key_Delete):
             if self.selected:
                 t, idx = self.selected
-                if t == 'zero' and 0 <= idx < len(self.zeros):
-                    cj = self.conjugate_index(idx)
-                    if cj is not None:
-                        for k in sorted([idx, cj], reverse=True):
-                            if 0 <= k < len(self.zeros):
-                                self.zeros.pop(k)
-                    else:
-                        self.zeros.pop(idx)
-                elif t == 'pole' and 0 <= idx < len(self.poles):
-                    self.poles.pop(idx)
+                self._delete_item(t, idx)
                 self.selected = None
                 self.update_scatter()
         else:
@@ -159,6 +165,12 @@ class PoleZeroEditor(pg.GraphicsLayoutWidget):
             t, idx, _ = found
             self.dragging_point = (t, idx)
             self.selected = (t, idx)
+            return
+        if found and mode == 'delete':
+            t, idx, _ = found
+            if self._delete_item(t, idx):
+                self.selected = None
+                self.update_scatter()
             return
         if mode in ('add_zero', 'add_pole'):
             if modifiers & QtCore.Qt.KeyboardModifier.ShiftModifier:
